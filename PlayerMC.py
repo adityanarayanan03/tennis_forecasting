@@ -54,6 +54,7 @@ class PlayerMC:
             
             #self.logger.debug(f"At the end of update, transition counts are {self.transition_counts}")
             self._compute_probability_matrix()
+            self._compute_p_win_on_serve()
     
     def _compute_p_win_on_serve(self) -> float:
         '''
@@ -64,8 +65,8 @@ class PlayerMC:
         wins = 0
         losses = 0
         for state in self.STATE_TRANSITIONS:
-            wins += self.transition_counts[self.STATE_TRANSITIONS[state][0]]
-            losses += self.transition_counts[self.STATE_TRANSITIONS[state][1]]
+            wins += self.transition_counts[state][self.STATE_TRANSITIONS[state][0]]
+            losses += self.transition_counts[state][self.STATE_TRANSITIONS[state][1]]
         
         if wins+losses == 0:
             self.logger.warn(f"Player {self.player_name} has no recorded points on serve. Failing to compute p_win_on_serve")
