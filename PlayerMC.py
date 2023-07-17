@@ -47,7 +47,13 @@ class PlayerMC:
                 state = next_state
             
             #self.logger.debug(f"At the end of update, transition counts are {self.transition_counts}")
+            self._compute_probability_matrix()
     
+    def _compute_probability_matrix(self):
+        sums = self.transition_counts.sum(axis=1, keepdims = True)
+        sums += 0.000001
+        self.transition_matrix = self.transition_counts/sums
+
     def simulate(self):
         raise NotImplemented
     
