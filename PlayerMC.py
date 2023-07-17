@@ -23,6 +23,7 @@ class PlayerMC:
         #Need to retain both matrix and counts so we can update probabilities
         self.transition_matrix = np.zeros((20, 20))
         self.transition_counts = np.zeros((20, 20))
+        self.p_win_on_serve = 0
         
         self.player_name = name
 
@@ -54,6 +55,25 @@ class PlayerMC:
             #self.logger.debug(f"At the end of update, transition counts are {self.transition_counts}")
             self._compute_probability_matrix()
     
+    def _compute_p_win_on_serve(self) -> float:
+        '''
+        Computes the total probability of winning a point on serve
+        Used to simulate tiebreaks
+        Returns p_win_on_serve if successful, otherwise returns -1
+        '''
+        wins = 0
+        losses = 0
+        for state in self.STATE_TRANSITIONS:
+            wins += self.transition_counts[self.STATE_TRANSITIONS[state][0]]
+            losses += self.transition_counts[self.STATE_TRANSITIONS[state][1]]
+        
+        if wins+losses == 0:
+            self.logger.warn(f"Player {self.player_name} has no recorded points on serve. Failing to compute p_win_on_serve")
+            return -1
+        else:
+            self.p_win_on_serve = wins/(wins + losses)
+            return self.p_win_on_serve
+
     def _compute_probability_matrix(self):
         sums = self.transition_counts.sum(axis=1, keepdims = True)
         for idx in range(len(sums)):
@@ -61,7 +81,7 @@ class PlayerMC:
                 sums[idx][0] = 1
         self.transition_matrix = self.transition_counts/sums
 
-    def simulate(self) -> bool:
+    def simulate_game(self) -> bool:
         '''
         Simulates a single game of player serving.
 
@@ -87,6 +107,12 @@ class PlayerMC:
 
             state = next_state
 
+    def simulate_point(self) -> bool:
+        '''
+        Uses the total probability of winning on serve to simulate a single point.
+        Returns true if player won the point, false otherwise
+        '''
+        return np.random.choice([True, False], p = [self.p_win_on_serve, 1 - self.p_win_on_serve])
 
     
     def __str__(self):
