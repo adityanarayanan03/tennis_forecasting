@@ -15,6 +15,11 @@ class PlayerMC:
                                   10:[18,13], 11:[13,14], 12:[14,19], 13:[18,15], 14:[15,17],
                                   15:[16,17], 16:[18,15], 17:[15,19], 18:[0,0], 19:[0,0]}
         
+        self.STATE_MAPPING = {0:'0 - 0', 1:'15 - 0', 2:'0 - 15', 3:'30 - 0', 4:'15 - 15', 5:'0 - 30',
+                              6:'40 - 0', 7:'30 - 15', 8:'15 - 30', 9:'0 - 40', 10:'40 - 15', 11:'30 - 30',
+                              12:'15 - 40', 13:'40 - 30', 14:'30 - 40', 15:'40 - 40', 16:'Ad - 40', 17:'40 - Ad',
+                              18:'W', 19:'L'}
+        
         #Need to retain both matrix and counts so we can update probabilities
         self.transition_matrix = np.zeros((20, 20))
         self.transition_counts = np.zeros((20, 20))
@@ -51,11 +56,38 @@ class PlayerMC:
     
     def _compute_probability_matrix(self):
         sums = self.transition_counts.sum(axis=1, keepdims = True)
-        sums += 0.000001
+        for idx in range(len(sums)):
+            if sums[idx][0] == 0:
+                sums[idx][0] = 1
         self.transition_matrix = self.transition_counts/sums
 
-    def simulate(self):
-        raise NotImplemented
+    def simulate(self) -> bool:
+        '''
+        Simulates a single game of player serving.
+
+        Returns True if player wins, False otherwise
+        '''
+        choices = np.arange(20)
+        state = 0
+        path = ""
+        while True:
+            probabilities = self.transition_matrix[state]
+            #print(probabilities)
+            #print(choices)
+            next_state = np.random.choice(choices, p = probabilities)
+
+            path += f"{self.STATE_MAPPING[next_state]}, "
+
+            if next_state == 18:
+                print(path)
+                return True
+            elif next_state == 19:
+                print(path)
+                return False
+
+            state = next_state
+
+
     
     def __str__(self):
         to_return = f"Player: {self.player_name}\n"
