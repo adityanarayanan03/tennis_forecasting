@@ -91,7 +91,7 @@ class Match:
         raise NotImplemented
         
 
-def simulate_set():
+def t_simulate_set():
     from PlayerDB import PlayerDB
 
     db = PlayerDB()
@@ -112,5 +112,5 @@ if __name__ == '__main__':
 
     logger.info('Match.py was run directly, running through tests')
 
-    simulate_set()
+    t_simulate_set()
 
