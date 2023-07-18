@@ -10,17 +10,24 @@ class Match:
     '''
     Represents a single match between two players.
     '''
-    def __init__(self, server1, server2, match_format = 0, court = 0):
+    def __init__(self, server1, server2, match_format = 'tour', court = 0):
         '''
         Format and court are unused right now
         '''
-        self.players = {1: server1, 2: server2}
-
-        self.format = match_format
-        self.court = court
-
         self.logger = logging.getLogger("Match")
         self.logger.setLevel(logging.DEBUG)
+
+        if match_format == 'tour':
+            self.sets_to_win = 2
+        elif match_format == 'grand slam':
+            self.sets_to_win = 3
+        else:
+            self.logger.error(f'Received unrecognized match_format parameter {match_format}')
+            return
+
+        self.players = {1: server1, 2: server2}
+
+        self.court = court
     
     def _other_player(self, server):
         '''
@@ -56,14 +63,17 @@ class Match:
                 elif score[2] >= pts and score[2] - score[1] >= 2:
                     return 2, score
                 
-                self.logger.debug(f'Score is currently {score}')
+                #self.logger.debug(f'Score is currently {score}')
                 
             
             #swap the server
             server_idx = self._other_player(server_idx)
     
     def simulate_set_with_server_chains(self, serve_order):
-        #Very similar logic to simulating the tiebreak since we have simulate_game()
+        '''
+        Returns winner, score where winner is an index of player and 
+        score is set score as a dictionary.
+        '''
         score = {1:0, 2:0}
         server_idx = serve_order
         for serve_idx in itertools.count():
@@ -87,9 +97,51 @@ class Match:
             #rotate servers
             server_idx = self._other_player(server_idx)
 
-    def simulate_match_with_server_chains(self, db=None, server1_mc=None, server2_mc=None):
-        raise NotImplemented
+    def simulate_match_with_server_chains(self):
+        '''
+        Returns winner, score where winner is an index of player 
+        and score is a list of set scores.
+        '''
+
+        set_count = {1:0, 2:0}
+        score = []
+        server_idx = 1
+
+        for set_idx in itertools.count():
+            #Simulate a set
+            set_winner, set_score = self.simulate_set_with_server_chains(server_idx)
+
+            #Update score counting variables
+            set_count[set_winner] += 1
+            score.append(set_score)
+
+            #check for wins
+            if set_count[1] == self.sets_to_win:
+                return 1, set_count, score
+            elif set_count[2] == self.sets_to_win:
+                return 2, set_count, score
+
+            #update server_idx appropriately
+            if (set_score[1] + set_score[2])%2 == 0:
+                server_idx = 1
+            else:
+                server_idx = 2
+
         
+
+def t_simulate_match(name_1, name_2):
+    from PlayerDB import PlayerDB
+
+    db = PlayerDB()
+    db.populate_from_csv('tennis_pointbypoint/pbp_matches_atp_main_current.csv')
+
+    player_1 = db.get_player_mc(name_1)
+    player_2 = db.get_player_mc(name_2)
+
+    match = Match(player_1, player_2, match_format='grand slam')
+    winner, set_count, score = match.simulate_match_with_server_chains()
+    print(f"Match won by {winner}, {set_count[winner]} sets to {set_count[match._other_player(winner)]}, {score}")
+
 
 def t_simulate_set():
     from PlayerDB import PlayerDB
@@ -112,5 +164,5 @@ if __name__ == '__main__':
 
     logger.info('Match.py was run directly, running through tests')
 
-    t_simulate_set()
+    t_simulate_match('Roger Federer', 'Novak Djokovic')
 

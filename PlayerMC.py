@@ -100,10 +100,10 @@ class PlayerMC:
             path += f"{self.STATE_MAPPING[next_state]}, "
 
             if next_state == 18:
-                print(path)
+                #print(path)
                 return True
             elif next_state == 19:
-                print(path)
+                #print(path)
                 return False
 
             state = next_state
