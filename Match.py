@@ -140,7 +140,7 @@ def t_simulate_match(name_1, name_2):
 
     match = Match(player_1, player_2, match_format='grand slam')
     winner, set_count, score = match.simulate_match_with_server_chains()
-    print(f"Match won by {winner}, {set_count[winner]} sets to {set_count[match._other_player(winner)]}, {score}")
+    print(f"Match won by player {winner}, {set_count[winner]} sets to {set_count[match._other_player(winner)]}, {score}")
 
 
 def t_simulate_set():
@@ -164,5 +164,5 @@ if __name__ == '__main__':
 
     logger.info('Match.py was run directly, running through tests')
 
-    t_simulate_match('Roger Federer', 'Novak Djokovic')
+    t_simulate_match('Carlos Alcaraz', 'Novak Djokovic')
 
