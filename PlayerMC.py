@@ -1,7 +1,7 @@
 import numpy as np
 
 import logging
-logging.basicConfig()
+from CustomFormatter import ch
 
 class PlayerMC:
     '''
@@ -29,6 +29,7 @@ class PlayerMC:
 
         self.logger = logging.getLogger("PlayerMC")
         self.logger.setLevel(logging.ERROR)
+        self.logger.addHandler(ch)
     
     def update_from_pbp(self, pbp):
         if len(pbp) == 1 or len(pbp) == 2:

@@ -4,7 +4,7 @@ from PlayerDB import PlayerDB
 from PlayerMC import PlayerMC
 
 import logging
-logging.basicConfig()
+from CustomFormatter import ch
 
 class Match:
     '''
@@ -16,6 +16,7 @@ class Match:
         '''
         self.logger = logging.getLogger("Match")
         self.logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(ch)
 
         if match_format == 'tour':
             self.sets_to_win = 2
@@ -164,5 +165,5 @@ if __name__ == '__main__':
 
     logger.info('Match.py was run directly, running through tests')
 
-    t_simulate_match('Carlos Alcaraz', 'Novak Djokovic')
+    t_simulate_match('Rafael Nadal', 'Stan Wawrinka')
 

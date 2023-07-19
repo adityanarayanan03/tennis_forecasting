@@ -3,7 +3,7 @@ import pandas as pd
 from PlayerMC import PlayerMC
 
 import logging
-logging.basicConfig()
+from CustomFormatter import ch
 
 class PlayerDB:
     '''
@@ -16,6 +16,7 @@ class PlayerDB:
 
         self.logger = logging.getLogger("PlayerDB")
         self.logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(ch)
     
     def add_player(self, name) -> bool:
         '''
