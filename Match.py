@@ -183,6 +183,9 @@ def t_inspect_distribution(name_1, name_2, trials):
     logger.info(f"Frequency list after simulation is {freq_list}")
 
     plt.bar(freq_list.keys(), freq_list.values())
+    plt.title(f"{name_1} vs {name_2}")
+    plt.ylabel("Matches won in simulation")
+    plt.xlabel(f"Sets won by {name_1} - sets won by {name_2}")
     plt.show()
 
 
