@@ -158,6 +158,31 @@ def t_simulate_set():
     set_winner, set_score = match.simulate_set_with_server_chains(1)
     print(f'Set won by player {set_winner} with score {set_score}')
 
+def t_inspect_distribution(name_1, name_2, trials):
+    from PlayerDB import PlayerDB
+    import matplotlib.pyplot as plt
+    import collections
+
+    db = PlayerDB()
+    db.populate_from_csv('tennis_pointbypoint/pbp_matches_atp_main_current.csv')
+
+    player_1 = db.get_player_mc(name_1)
+    player_2 = db.get_player_mc(name_2)
+
+    match = Match(player_1, player_2, match_format='grand slam')
+
+    #Simulate a bunch of trials
+    history = []
+    for _ in range(trials):
+        winner, set_count, score = match.simulate_match_with_server_chains()
+        history.append(set_count[1] - set_count[2])
+
+    #Create a histogram of the trials
+    freq_list = collections.Counter(history)
+
+    plt.bar(freq_list.keys(), freq_list.values())
+    plt.show()
+
 
 if __name__ == '__main__':
     logger = logging.getLogger('Match.py')
@@ -166,5 +191,5 @@ if __name__ == '__main__':
 
     logger.info('Match.py was run directly, running through tests')
 
-    t_simulate_match('Rafael Nadal', 'Stan Wawrinka')
-
+    #t_simulate_match('Rafael Nadal', 'Stan Wawrinka')
+    t_inspect_distribution('Roger Federer', 'Frances Tiafoe', 1000)
