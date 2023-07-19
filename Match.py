@@ -14,7 +14,7 @@ class Match:
         '''
         Format and court are unused right now
         '''
-        self.logger = logging.getLogger("Match")
+        self.logger = logging.getLogger("Match Class")
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(ch)
 
@@ -180,6 +180,8 @@ def t_inspect_distribution(name_1, name_2, trials):
     #Create a histogram of the trials
     freq_list = collections.Counter(history)
 
+    logger.info(f"Frequency list after simulation is {freq_list}")
+
     plt.bar(freq_list.keys(), freq_list.values())
     plt.show()
 
@@ -192,4 +194,4 @@ if __name__ == '__main__':
     logger.info('Match.py was run directly, running through tests')
 
     #t_simulate_match('Rafael Nadal', 'Stan Wawrinka')
-    t_inspect_distribution('Roger Federer', 'Frances Tiafoe', 1000)
+    t_inspect_distribution('Roger Federer', 'Adam Pavlasek', 1000)
