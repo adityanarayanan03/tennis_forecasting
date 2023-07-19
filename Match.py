@@ -162,6 +162,7 @@ def t_simulate_set():
 if __name__ == '__main__':
     logger = logging.getLogger('Match.py')
     logger.setLevel(logging.DEBUG)
+    logger.addHandler(ch)
 
     logger.info('Match.py was run directly, running through tests')
 
