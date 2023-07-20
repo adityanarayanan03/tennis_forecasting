@@ -153,7 +153,7 @@ class Match:
             p = wins/(idx + 1)
             interval_width = np.sqrt((p * (1-p))/(idx+1))
 
-            self.logger.info(f"At iteration {idx} p is currently {p:.3f} and total interval width is {interval_width:.5f}")
+            #self.logger.info(f"At iteration {idx} p is currently {p:.3f} and total interval width is {interval_width:.5f}")
 
             if interval_width <= max_width and idx > min_trials:
                 return p, interval_width

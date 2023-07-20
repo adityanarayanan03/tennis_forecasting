@@ -94,6 +94,15 @@ class PlayerMC:
         path = ""
         while True:
             probabilities = self.transition_matrix[state]
+
+            if np.sum(probabilities) != 1:
+                self.logger.error(f"Player {self.player_name}: Probabilities do not sum to 1. Printing row of transition matrix")
+                self.logger.error(f"{probabilities}, (state {state})")
+
+                self.logger.warning(f"Using p_win_on_serve approximation.")
+                probabilities[self.STATE_TRANSITIONS[state][0]] = self.p_win_on_serve
+                probabilities[self.STATE_TRANSITIONS[state][1]] = 1-self.p_win_on_serve
+
             #print(probabilities)
             #print(choices)
             next_state = np.random.choice(choices, p = probabilities)
