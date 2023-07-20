@@ -153,7 +153,7 @@ class Match:
             p = wins/(idx + 1)
             interval_width = np.sqrt((p * (1-p))/(idx+1))
 
-            self.logger.info(f"At iteration {idx} p is currently {p} and total interval width is {interval_width}")
+            self.logger.info(f"At iteration {idx} p is currently {p:.3f} and total interval width is {interval_width:.5f}")
 
             if interval_width <= max_width and idx > min_trials:
                 return p, interval_width
@@ -233,7 +233,7 @@ def t_sample_match_distribution(name_1, name_2):
 
     p, interval = match.sample_match_with_server_chains()
 
-    logger.info(f"Probability of player 1 winning the match is {p} +- {interval}")
+    logger.info(f"Probability of player 1 winning the match is {p:.3f} +- {interval:.5f}")
 
 
 if __name__ == '__main__':
@@ -245,4 +245,4 @@ if __name__ == '__main__':
 
     #t_simulate_match('Rafael Nadal', 'Stan Wawrinka')
     #t_inspect_distribution('Serena Williams', 'Fangzhou Liu', 1000)
-    t_sample_match_distribution('Roger Federer', 'John Isner')
+    t_sample_match_distribution('Roger Federer', 'Rafael Nadal')
