@@ -1,4 +1,7 @@
 import itertools
+import collections
+from scipy.stats import norm as inv_norm
+import numpy as np
 
 from PlayerDB import PlayerDB
 from PlayerMC import PlayerMC
@@ -128,6 +131,33 @@ class Match:
             else:
                 server_idx = 2
 
+    def sample_match_with_server_chains(self, confidence_level = 0.95, max_width = 0.01, min_trials = 30):
+        '''
+        Makes repeated simulatins of a match until confidence interval of 
+        given confidence is less than or equal to max_width
+        '''
+        #Compute the inverse normal of confidence level first (2 sided)
+        z = inv_norm(confidence_level + (1-confidence_level)/2)
+
+        #Simulate a bunch of trials
+        p = 0
+        wins = 0
+        history = []
+        for idx in itertools.count():
+            winner, set_count, score = self.simulate_match_with_server_chains()
+            history.append(set_count[1] - set_count[2])
+
+            if winner == 1:
+                wins += 1
+            
+            p = wins/(idx + 1)
+            interval_width = np.sqrt((p * (1-p))/(idx+1))
+
+            self.logger.info(f"At iteration {idx} p is currently {p} and total interval width is {interval_width}")
+
+            if interval_width <= max_width and idx > min_trials:
+                return p, interval_width
+
         
 
 def t_simulate_match(name_1, name_2):
@@ -188,6 +218,23 @@ def t_inspect_distribution(name_1, name_2, trials):
     plt.xlabel(f"Sets won by {name_1} - sets won by {name_2}")
     plt.show()
 
+def t_sample_match_distribution(name_1, name_2):
+    from PlayerDB import PlayerDB
+    import matplotlib.pyplot as plt
+    import collections
+
+    db = PlayerDB()
+    db.populate_from_csv('tennis_pointbypoint/pbp_matches_atp_main_current.csv')
+
+    player_1 = db.get_player_mc(name_1)
+    player_2 = db.get_player_mc(name_2)
+
+    match = Match(player_1, player_2, match_format='grand slam')
+
+    p, interval = match.sample_match_with_server_chains()
+
+    logger.info(f"Probability of player 1 winning the match is {p} +- {interval}")
+
 
 if __name__ == '__main__':
     logger = logging.getLogger('Match.py')
@@ -197,4 +244,5 @@ if __name__ == '__main__':
     logger.info('Match.py was run directly, running through tests')
 
     #t_simulate_match('Rafael Nadal', 'Stan Wawrinka')
-    t_inspect_distribution('Roger Federer', 'Adam Pavlasek', 1000)
+    #t_inspect_distribution('Serena Williams', 'Fangzhou Liu', 1000)
+    t_sample_match_distribution('Roger Federer', 'John Isner')
