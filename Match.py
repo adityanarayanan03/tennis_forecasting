@@ -1,6 +1,6 @@
 import itertools
 import collections
-from scipy.stats import norm as inv_norm
+from scipy.stats import norm
 import numpy as np
 
 from PlayerDB import PlayerDB
@@ -137,7 +137,8 @@ class Match:
         given confidence is less than or equal to max_width
         '''
         #Compute the inverse normal of confidence level first (2 sided)
-        z = inv_norm(confidence_level + (1-confidence_level)/2)
+        z = norm.ppf(confidence_level + (1-confidence_level)/2)
+        #self.logger.debug(f"z is {z}")
 
         #Simulate a bunch of trials
         p = 0
@@ -151,7 +152,7 @@ class Match:
                 wins += 1
             
             p = wins/(idx + 1)
-            interval_width = np.sqrt((p * (1-p))/(idx+1))
+            interval_width = z * np.sqrt((p * (1-p))/(idx+1))
 
             #self.logger.info(f"At iteration {idx} p is currently {p:.3f} and total interval width is {interval_width:.5f}")
 

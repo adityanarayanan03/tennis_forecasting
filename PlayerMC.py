@@ -28,7 +28,7 @@ class PlayerMC:
         self.player_name = name
 
         self.logger = logging.getLogger("PlayerMC")
-        self.logger.setLevel(logging.ERROR)
+        self.logger.setLevel(logging.WARNING)
         self.logger.addHandler(ch)
     
     def update_from_pbp(self, pbp):
