@@ -68,10 +68,9 @@ class PlayerDB:
                 if serve_idx%2 == 0:
                     #server1 is updating
                     self.db[server1].update_from_pbp(w_l, is_server = True)
+                    self.db[server2].update_from_pbp(w_l, is_server = False)
                 
                 else:
                     #server2 is updating
                     self.db[server2].update_from_pbp(w_l, is_server = True)
-        
-        #self.logger.debug(self.db)
-
+                    self.db[server1].update_from_pbp(w_l, is_server = False)

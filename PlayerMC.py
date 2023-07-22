@@ -160,7 +160,7 @@ class PlayerMC:
         to_return += str(self.transition_counts['s'])
         to_return += "\n\n"
 
-        to_return = f"Player: {self.player_name} Return Matrix\n"
+        to_return += f"Player: {self.player_name} Return Matrix\n"
         to_return += str(self.transition_counts['r'])
 
         return to_return
