@@ -3,6 +3,17 @@ import numpy as np
 import logging
 from CustomFormatter import ch
 
+#State transitions and state mapping are used for all PlayerMC's. No need to waste memory.
+STATE_TRANSITIONS = {0:[1,2], 1:[3,4], 2:[4,5], 3:[6,7], 4:[7,8],
+                    5:[8,9], 6:[18,10], 7:[10,11], 8:[11,12], 9:[12,19],
+                    10:[18,13], 11:[13,14], 12:[14,19], 13:[18,15], 14:[15,17],
+                    15:[16,17], 16:[18,15], 17:[15,19], 18:[0,0], 19:[0,0]}
+
+STATE_MAPPING = {0:'0 - 0', 1:'15 - 0', 2:'0 - 15', 3:'30 - 0', 4:'15 - 15', 5:'0 - 30',
+                6:'40 - 0', 7:'30 - 15', 8:'15 - 30', 9:'0 - 40', 10:'40 - 15', 11:'30 - 30',
+                12:'15 - 40', 13:'40 - 30', 14:'30 - 40', 15:'40 - 40', 16:'Ad - 40', 17:'40 - Ad',
+                18:'W', 19:'L'}
+
 class PlayerMC:
     '''
     Mostly just a container class for the matrix representation
@@ -10,15 +21,6 @@ class PlayerMC:
     in case I need to add metadata later
     '''
     def __init__(self, name):
-        self.STATE_TRANSITIONS = {0:[1,2], 1:[3,4], 2:[4,5], 3:[6,7], 4:[7,8],
-                                  5:[8,9], 6:[18,10], 7:[10,11], 8:[11,12], 9:[12,19],
-                                  10:[18,13], 11:[13,14], 12:[14,19], 13:[18,15], 14:[15,17],
-                                  15:[16,17], 16:[18,15], 17:[15,19], 18:[0,0], 19:[0,0]}
-        
-        self.STATE_MAPPING = {0:'0 - 0', 1:'15 - 0', 2:'0 - 15', 3:'30 - 0', 4:'15 - 15', 5:'0 - 30',
-                              6:'40 - 0', 7:'30 - 15', 8:'15 - 30', 9:'0 - 40', 10:'40 - 15', 11:'30 - 30',
-                              12:'15 - 40', 13:'40 - 30', 14:'30 - 40', 15:'40 - 40', 16:'Ad - 40', 17:'40 - Ad',
-                              18:'W', 19:'L'}
         
         #Need to retain both matrix and counts so we can update probabilities
         self.transition_matrix = np.zeros((20, 20))
@@ -41,10 +43,10 @@ class PlayerMC:
             for point in pbp:
                 next_state = state
                 if point == 'S' or point == 'A':
-                    next_state = self.STATE_TRANSITIONS[state][0]
+                    next_state = STATE_TRANSITIONS[state][0]
                 
                 elif point == 'R' or point == 'D':
-                    next_state = self.STATE_TRANSITIONS[state][1]
+                    next_state = STATE_TRANSITIONS[state][1]
                 
                 else:
                     self.logger.warn(f"Got unknown character {point} in pbp")
@@ -65,9 +67,9 @@ class PlayerMC:
         '''
         wins = 0
         losses = 0
-        for state in self.STATE_TRANSITIONS:
-            wins += self.transition_counts[state][self.STATE_TRANSITIONS[state][0]]
-            losses += self.transition_counts[state][self.STATE_TRANSITIONS[state][1]]
+        for state in STATE_TRANSITIONS:
+            wins += self.transition_counts[state][STATE_TRANSITIONS[state][0]]
+            losses += self.transition_counts[state][STATE_TRANSITIONS[state][1]]
         
         if wins+losses == 0:
             self.logger.warn(f"Player {self.player_name} has no recorded points on serve. Failing to compute p_win_on_serve")
@@ -100,14 +102,14 @@ class PlayerMC:
                 self.logger.error(f"{probabilities}, (state {state})")
 
                 self.logger.warning(f"Using p_win_on_serve approximation.")
-                probabilities[self.STATE_TRANSITIONS[state][0]] = self.p_win_on_serve
-                probabilities[self.STATE_TRANSITIONS[state][1]] = 1-self.p_win_on_serve
+                probabilities[STATE_TRANSITIONS[state][0]] = self.p_win_on_serve
+                probabilities[STATE_TRANSITIONS[state][1]] = 1-self.p_win_on_serve
 
             #print(probabilities)
             #print(choices)
             next_state = np.random.choice(choices, p = probabilities)
 
-            path += f"{self.STATE_MAPPING[next_state]}, "
+            path += f"{STATE_MAPPING[next_state]}, "
 
             if next_state == 18:
                 #print(path)
