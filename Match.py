@@ -56,7 +56,7 @@ class Match:
             
             for _ in range(serves):
                 server = self.players[server_idx]
-                if server.simulate_point():
+                if server.simulate_point(is_server = True):
                     score[server_idx] += 1
                 else:
                     score[self._other_player(server_idx)] += 1
@@ -88,7 +88,7 @@ class Match:
                 score[tb_winner] += 1
                 return tb_winner, score
             
-            if server.simulate_game():
+            if server.simulate_game(is_server = True):
                 score[server_idx] += 1
             else:
                 score[self._other_player(server_idx)] += 1
