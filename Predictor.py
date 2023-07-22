@@ -1,7 +1,7 @@
 import pandas as pd
 
 from PlayerDB import PlayerDB
-from Match import Match
+from Match import ServerChainSimulator
 
 import logging
 from CustomFormatter import ch
@@ -69,8 +69,8 @@ class ServerChainPredictor(Predictor):
             player_2_mc = self.db.get_player_mc(server2)
 
             #Create a match between the two players
-            match = Match(player_1_mc, player_2_mc)
-            p, interval = match.sample_match_with_server_chains(confidence_level=.80, max_width=.05, min_trials=30)
+            simulator = ServerChainSimulator(player_1_mc, player_2_mc)
+            p, interval = simulator.sample_match(confidence_level=.80, max_width=.05, min_trials=30)
 
             #Make the actual prediction
             prediction = 1 if p > 0.5 else 2

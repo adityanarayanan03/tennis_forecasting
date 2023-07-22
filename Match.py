@@ -11,35 +11,39 @@ from CustomFormatter import ch
 
 class Match:
     '''
-    Represents a single match between two players.
+    Base match class that all other simulatino methods will inherit from
+    '''
+    def __init__(self, server1, server2, match_format = 'tour', court = 'hard'):
+        
+        if match_format == 'tour':
+            self.sets_to_win = 2
+        else:
+            self.sets_to_win = 3
+        
+        self.players = {1: server1, 2: server2}
+        self.court = court
+    
+    def _other_player(self, server):
+        return 2 if server == 1 else 1
+
+
+
+
+class ServerChainSimulator(Match):
+    '''
+    Match where each game is simulated using only server's markov chain
     '''
     def __init__(self, server1, server2, match_format = 'tour', court = 0):
         '''
         Format and court are unused right now
         '''
+        super().__init__(server1, server2, match_format, court)
+
         self.logger = logging.getLogger("Match Class")
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(ch)
-
-        if match_format == 'tour':
-            self.sets_to_win = 2
-        elif match_format == 'grand slam':
-            self.sets_to_win = 3
-        else:
-            self.logger.error(f'Received unrecognized match_format parameter {match_format}')
-            return
-
-        self.players = {1: server1, 2: server2}
-
-        self.court = court
     
-    def _other_player(self, server):
-        '''
-        returns the other player from server
-        '''
-        return 2 if server == 1 else 1
-    
-    def simulate_tiebreak_with_server_chains(self, pts, serve_order):
+    def simulate_tiebreak(self, pts, serve_order):
         '''
         serve_order of 1 indicates server1 serves first in tiebreak.
         pts is 7 or 10 depending on what kind of tiebreak we simulate
@@ -73,7 +77,10 @@ class Match:
             #swap the server
             server_idx = self._other_player(server_idx)
     
-    def simulate_set_with_server_chains(self, serve_order):
+    def simulate_game(self, server_idx):
+        return self.players[server_idx].simulate_game()
+
+    def simulate_set(self, serve_order):
         '''
         Returns winner, score where winner is an index of player and 
         score is set score as a dictionary.
@@ -83,16 +90,19 @@ class Match:
         for serve_idx in itertools.count():
             server = self.players[server_idx]
             
+            #Do we go to tiebreak?
             if score[1] == 6 and score[2] == 6:
-                tb_winner, tb_score = self.simulate_tiebreak_with_server_chains(7, server_idx)
+                tb_winner, tb_score = self.simulate_tiebreak(7, server_idx)
                 score[tb_winner] += 1
                 return tb_winner, score
             
-            if server.simulate_game(is_server = True):
+            #Simulate normal game (not tiebreak)
+            if self.simulate_game(server_idx):
                 score[server_idx] += 1
             else:
                 score[self._other_player(server_idx)] += 1
 
+            #Did somebody win on that game?
             if score[1] >= 6 and score[1] - score[2] >= 2:
                 return 1, score
             elif score[2] >= 6 and score[2] - score[1] >= 2:
@@ -101,7 +111,7 @@ class Match:
             #rotate servers
             server_idx = self._other_player(server_idx)
 
-    def simulate_match_with_server_chains(self):
+    def simulate_match(self):
         '''
         Returns winner, score where winner is an index of player 
         and score is a list of set scores.
@@ -113,7 +123,7 @@ class Match:
 
         for set_idx in itertools.count():
             #Simulate a set
-            set_winner, set_score = self.simulate_set_with_server_chains(server_idx)
+            set_winner, set_score = self.simulate_set(server_idx)
 
             #Update score counting variables
             set_count[set_winner] += 1
@@ -131,7 +141,7 @@ class Match:
             else:
                 server_idx = 2
 
-    def sample_match_with_server_chains(self, confidence_level = 0.95, max_width = 0.01, min_trials = 30):
+    def sample_match(self, confidence_level = 0.95, max_width = 0.01, min_trials = 30):
         '''
         Makes repeated simulatins of a match until confidence interval of 
         given confidence is less than or equal to max_width
@@ -145,7 +155,7 @@ class Match:
         wins = 0
         history = []
         for idx in itertools.count():
-            winner, set_count, score = self.simulate_match_with_server_chains()
+            winner, set_count, score = self.simulate_match()
             history.append(set_count[1] - set_count[2])
 
             if winner == 1:
@@ -161,6 +171,25 @@ class Match:
 
         
 
+def t_simulate_set(name_1, name_2):
+    '''
+    Returns 1 if runs til end. 
+    Note: Doesn't validate output itself.
+    '''
+    from PlayerDB import PlayerDB
+
+    db = PlayerDB()
+    db.populate_from_csv('tennis_pointbypoint/pbp_matches_atp_main_current.csv')
+
+    player_1 = db.get_player_mc(name_1)
+    player_2 = db.get_player_mc(name_2)
+
+    #Simulate a match between player1 and player2
+    simulator = ServerChainSimulator(player_1, player_2)
+    set_winner, set_score = simulator.simulate_set(1)
+    print(f'Set won by player {set_winner} with score {set_score}')
+    return 1
+
 def t_simulate_match(name_1, name_2):
     from PlayerDB import PlayerDB
 
@@ -170,24 +199,9 @@ def t_simulate_match(name_1, name_2):
     player_1 = db.get_player_mc(name_1)
     player_2 = db.get_player_mc(name_2)
 
-    match = Match(player_1, player_2, match_format='grand slam')
-    winner, set_count, score = match.simulate_match_with_server_chains()
-    print(f"Match won by player {winner}, {set_count[winner]} sets to {set_count[match._other_player(winner)]}, {score}")
-
-
-def t_simulate_set():
-    from PlayerDB import PlayerDB
-
-    db = PlayerDB()
-    db.populate_from_csv('tennis_pointbypoint/pbp_matches_atp_main_current.csv')
-
-    player_1 = db.get_player_mc('Roger Federer')
-    player_2 = db.get_player_mc('Thiago Monteiro')
-
-    #Simulate a match between player1 and player2
-    match = Match(player_1, player_2)
-    set_winner, set_score = match.simulate_set_with_server_chains(1)
-    print(f'Set won by player {set_winner} with score {set_score}')
+    simulator = ServerChainSimulator(player_1, player_2, match_format='grand slam')
+    winner, set_count, score = simulator.simulate_match()
+    print(f"Match won by player {winner}, {set_count[winner]} sets to {set_count[simulator._other_player(winner)]}, {score}")
 
 def t_inspect_distribution(name_1, name_2, trials):
     from PlayerDB import PlayerDB
@@ -244,6 +258,7 @@ if __name__ == '__main__':
 
     logger.info('Match.py was run directly, running through tests')
 
-    #t_simulate_match('Rafael Nadal', 'Stan Wawrinka')
+    #t_simulate_set('Roger Federer', 'John Isner')
+    t_simulate_match('Roger Federer', 'John Isner')
     #t_inspect_distribution('Serena Williams', 'Fangzhou Liu', 1000)
-    t_sample_match_distribution('Roger Federer', 'Rafael Nadal')
+    #t_sample_match_distribution('Roger Federer', 'Rafael Nadal')
