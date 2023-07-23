@@ -33,6 +33,18 @@ class PlayerMC:
         self.logger.setLevel(logging.WARNING)
         self.logger.addHandler(ch)
     
+    def get_player_serve_probabilities(self):
+        return self.transition_matrices['s']
+
+    def get_player_serve_counts(self):
+        return self.transition_counts['s']
+    
+    def get_player_return_probabilities(self):
+        return self.transition_matrices['r']
+
+    def get_player_return_counts(self):
+        return self.transition_counts['r']
+    
     def update_from_pbp(self, pbp, is_server=True):
         '''
         Should be called with a pbp for every game played
